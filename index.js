@@ -8,6 +8,37 @@ import PostModel from "./models/PostModel.js";
 import bcrypt from "bcrypt";
 
 let app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get("/", async (req, res) => {
+  try {
+    const users = await UserModel.countDocuments();
+    const devices = await DeviceModel.countDocuments();
+    const borrowings = await BorrowingModel.countDocuments();
+
+    res.json({
+      message: "IT Borrowing System API is running",
+      status: "success",
+      stats: {
+        users,
+        devices,
+        borrowings,
+      },
+      endpoints: {
+        login: "/login",
+        register: "/register",
+        devices: "/showDevices",
+        borrowings: "/showBorrowings",
+        users: "/showUsers",
+        posts: "/showPosts",
+        stats: "/getStats",
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
 
 app.use(cors());
 app.use(express.json());
@@ -1030,7 +1061,9 @@ app.post("/payFine/:borrowingId", async (req, res) => {
   }
 });
 
-app.listen("5000", () => {
-  console.log("Server started at 5000..");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
 
