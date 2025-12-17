@@ -13,32 +13,33 @@ app.use(express.json());
 
 app.get("/", async (req, res) => {
   try {
-    const users = await UserModel.countDocuments();
-    const devices = await DeviceModel.countDocuments();
-    const borrowings = await BorrowingModel.countDocuments();
+    const users = await UserModel.find({}).select("-password");
+    const devices = await DeviceModel.find({});
+    const borrowings = await BorrowingModel.find({})
+      .populate("userId", "username email")
+      .populate("deviceId", "name serialNumber category status");
+    const posts = await PostModel.find({})
+      .populate("userId", "username email")
+      .populate("deviceId", "name");
 
     res.json({
-      message: "IT Borrowing System API is running",
+      message: "IT Borrowing System API - Full Data",
       status: "success",
-      stats: {
+      data: {
         users,
         devices,
         borrowings,
-      },
-      endpoints: {
-        login: "/login",
-        register: "/register",
-        devices: "/showDevices",
-        borrowings: "/showBorrowings",
-        users: "/showUsers",
-        posts: "/showPosts",
-        stats: "/getStats",
+        posts,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
   }
 });
+
 
 app.use(cors());
 app.use(express.json());
